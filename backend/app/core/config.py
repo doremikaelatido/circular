@@ -8,8 +8,8 @@ from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5432/social_circle"
-    jwt_secret: str = "local-development-only-change-this-secret"
+    database_url: str
+    jwt_secret: str
     jwt_access_token_minutes: int = Field(default=20, gt=0, le=60)
     cors_origins: Annotated[list[str], NoDecode] = ["http://localhost:5173"]
     docs_enabled: bool = True
@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def validate_production_security(self) -> "Settings":
         if self.environment == "production":
-            if len(self.jwt_secret) < 32 or self.jwt_secret == "local-development-only-change-this-secret":
+            if len(self.jwt_secret) < 32:
                 raise ValueError("Production JWT_SECRET must be a unique secret of at least 32 characters")
             if not self.cors_origins or "*" in self.cors_origins:
                 raise ValueError("Production CORS origins must be explicitly configured")
