@@ -1,4 +1,7 @@
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000/api";
+const configuredApiUrl =
+  import.meta.env.VITE_API_URL ?? "http://localhost:8000/api";
+const parsedApiUrl = new URL(configuredApiUrl);
+const API_URL = `${parsedApiUrl.origin}${parsedApiUrl.pathname.replace(/\/+$/, "")}`;
 
 let accessToken: string | null = null;
 
@@ -10,7 +13,7 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
   if (init.body) headers.set("Content-Type", "application/json");
   if (accessToken) headers.set("Authorization", `Bearer ${accessToken}`);
-  const response = await fetch(`${API_URL}${path}`, { ...init, headers });
+  const response = await fetch(new URL(`${API_URL}${path}`), { ...init, headers });
   if (!response.ok) {
     const payload: unknown = await response.json().catch(() => null);
     const detail =
